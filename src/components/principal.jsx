@@ -16,30 +16,29 @@ class Principal extends Component{
             markers:[{
                 position:{
                     lat:-16.0138654,
-                    lng:-48.0614247
+                    lng:-48.0614447
                 }
             }]
         }
         navigator.geolocation.getCurrentPosition(success=>{
             this.setState({   
-                    markers:[...this.state, ...{position:{lat:success.coords.latitude, lng:success.coords.longitude}}]
+                ...this.state,
+                    markers:this.state.markers.concat({position:{lat:success.coords.latitude, lng:success.coords.longitude}}),
                 })
         })
-        // this.setState({   
-        //         markers:[...this.state, ...{position:{lat:-16.013872,lng:-48.061423}} ]
-        //     })
     }
         
     render(){
         const { nome, changeInput, email, form } = this.props
         return (
         <div className='container'>
-            <Map isMarkerShown
+            <Map 
                 googleMapURL="https://maps.googleapis.com/maps/api/js?key=AIzaSyCLZ_Y-mXEK51keuawkneoXzmilUabHjQc"
                 loadingElement={<div style={{ height: `100%` }} />}
                 containerElement={<div style={{ height: `400px` }} />}
                 mapElement={<div style={{ height: `100%` }} />}
-                markers={this.state.markers}>
+                markers={this.state.markers}
+                >
                
             </Map>
             
@@ -56,14 +55,20 @@ const mapDispachToProps = dispatch => bindActionCreators({changeInput}, dispatch
 Principal.propTypes = {
     nome:PropTypes.string
 }
-
+const image = require('../../static/images/map-marker-radius.png')
 const Map = withScriptjs(withGoogleMap((props) =>
     <GoogleMap
     defaultZoom={8}
     defaultCenter={props.markers[0].position}
     >
-    {props.isMarkerShown && props.markers.map((marker, index)=>(
-        <Marker key={index} position={marker.position}/>
+    {props.markers.map((marker, index)=>(
+        <Marker key={index} 
+        position={marker.position} 
+        defaultTitle="minha casa"
+        draggable={true}
+        icon={{url:image}}>
+        {<img src={image}/>}
+        </Marker>
     ))}
     </GoogleMap>
 ))
