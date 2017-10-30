@@ -21,6 +21,18 @@ class Principal extends Component{
             }],
             mensagemErro:""
         }
+        database.ref("positions").on('value', data=>{
+            // this.setState({...this.state, markers:[{}]})
+            let markers = []
+            data.forEach((position)=> {
+                const {lat, lng} = position.val().position;
+                markers.push({position:{lat:Number(lat), lng:Number(lng)}});
+            });
+                this.setState({
+                    ...this.state, 
+                    markers:markers
+                })
+        })
     }
     getAtualLocation(){
         navigator.geolocation.getCurrentPosition(success=>{
@@ -58,14 +70,7 @@ class Principal extends Component{
     }
 }
 
-const mapStateToProps = state => ({
-        nome : state.teste.nome,
-        email: state.teste.email
-    })
-const mapDispachToProps = dispatch => bindActionCreators({changeInput}, dispatch)
-Principal.propTypes = {
-    nome:PropTypes.string
-}
+
 const image = require('../../static/images/map-marker-radius.png')
 
 class Mapa extends Component{
@@ -80,11 +85,8 @@ class Mapa extends Component{
 
     addMarker(e, map){
 
-        this.setState({
-            ...this.state,
-            marker:this.state.marker.concat({lat:e.latLng.lat(), lng:e.latLng.lng()})
+        database.ref('positions').push({position:{lat:e.latLng.lat(), lng:e.latLng.lng()}}).then((a)=>{
         })
-        
         console.log(e)
         console.log(e.latLng.lat(), e.latLng.lng())
     }
@@ -96,27 +98,10 @@ class Mapa extends Component{
             defaultCenter={this.props.markers[0].position}
             onClick={(e)=>this.addMarker(e, map)}
             >
-            {this.state.marker.map((e, index)=>(
-                <Marker 
-                key={index} 
-                position={{lat:e.lat,lng:e.lng}} 
-                defaultTitle="minha casa"
-                draggable={true}
-                icon={{url:image}}
-                >
-                {
-                <div>
-                    <img src={image}/>
-                    {e.lat}, {e.lng}
-                </div>
-                }
-                </Marker>                
-            ))}
             {this.props.markers.map((marker, index)=>(
                 <Marker key={index} 
                 position={marker.position} 
                 defaultTitle="minha casa"
-                draggable={true}
                 icon={{url:image}}
                 >
                 {
@@ -139,5 +124,12 @@ class Mapa extends Component{
 const Map = withScriptjs(withGoogleMap(Mapa))
 
 
-
+const mapStateToProps = state => ({
+        nome : state.teste.nome,
+        email: state.teste.email
+    })
+const mapDispachToProps = dispatch => bindActionCreators({changeInput}, dispatch)
+Principal.propTypes = {
+    nome:PropTypes.string
+}
 export default connect(mapStateToProps, mapDispachToProps)(Principal)
