@@ -18,21 +18,32 @@ class Principal extends Component{
                     lat:-16.0138654,
                     lng:-48.0614447
                 }
-            }]
+            }],
+            mensagemErro:""
         }
+    }
+    getAtualLocation(){
         navigator.geolocation.getCurrentPosition(success=>{
             this.setState({   
                 ...this.state,
                     markers:this.state.markers.concat({position:{lat:success.coords.latitude, lng:success.coords.longitude}}),
                 })
+        }, err=>{
+            this.setState({mensagemErro:err})
+            console.log(err)
+            setTimeout(()=>{
+              this.setState({mensagemErro:""})  
+            },3000)
         })
+
     }
-        
     render(){
         const { nome, changeInput, email, form } = this.props
         return (
         <div className='container'>
 
+            <button onClick={()=>this.getAtualLocation()}>Minha localização</button> 
+            <p style={{color:'red'}}>{this.state.mensagemErro.message}</p>
             <Map 
                 googleMapURL="https://maps.googleapis.com/maps/api/js?key=AIzaSyCLZ_Y-mXEK51keuawkneoXzmilUabHjQc"
                 loadingElement={<div style={{ height: `100%` }} />}
@@ -42,7 +53,6 @@ class Principal extends Component{
                 >
                
             </Map>
-            
         </div>
         )
     }
@@ -57,21 +67,77 @@ Principal.propTypes = {
     nome:PropTypes.string
 }
 const image = require('../../static/images/map-marker-radius.png')
-const Map = withScriptjs(withGoogleMap((props) =>
-    <GoogleMap
-    defaultZoom={8}
-    defaultCenter={props.markers[0].position}
-    >
-    {props.markers.map((marker, index)=>(
-        <Marker key={index} 
-        position={marker.position} 
-        defaultTitle="minha casa"
-        draggable={true}
-        icon={{url:image}}>
-        {<img src={image}/>}
-        </Marker>
-    ))}
-    </GoogleMap>
-))
+
+class Mapa extends Component{
+
+    constructor(props){
+        super(props)
+        this.addMarker = this.addMarker.bind(this);
+        this.state ={
+            marker:[]
+        }
+    }
+
+    addMarker(e, map){
+
+        this.setState({
+            ...this.state,
+            marker:this.state.marker.concat({lat:e.latLng.lat(), lng:e.latLng.lng()})
+        })
+        
+        console.log(e)
+        console.log(e.latLng.lat(), e.latLng.lng())
+    }
+
+    render(){
+        let map = (
+            <GoogleMap
+            defaultZoom={16}
+            defaultCenter={this.props.markers[0].position}
+            onClick={(e)=>this.addMarker(e, map)}
+            >
+            {this.state.marker.map((e, index)=>(
+                <Marker 
+                key={index} 
+                position={{lat:e.lat,lng:e.lng}} 
+                defaultTitle="minha casa"
+                draggable={true}
+                icon={{url:image}}
+                >
+                {
+                <div>
+                    <img src={image}/>
+                    {e.lat}, {e.lng}
+                </div>
+                }
+                </Marker>                
+            ))}
+            {this.props.markers.map((marker, index)=>(
+                <Marker key={index} 
+                position={marker.position} 
+                defaultTitle="minha casa"
+                draggable={true}
+                icon={{url:image}}
+                >
+                {
+                <div>
+                    <img src={image}/>
+                    {marker.position.lat}, {marker.position.lng}
+                </div>
+                }
+                </Marker>
+                
+            ))
+            }
+            </GoogleMap>
+
+        )
+        return map
+    }
+}
+
+const Map = withScriptjs(withGoogleMap(Mapa))
+
+
 
 export default connect(mapStateToProps, mapDispachToProps)(Principal)
