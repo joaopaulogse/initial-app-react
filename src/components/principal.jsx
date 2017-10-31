@@ -79,10 +79,20 @@ class Mapa extends Component{
         super(props)
         this.addMarker = this.addMarker.bind(this);
         this.state ={
-            marker:[]
+            marker:[],
+            certer:{
+                position:{
+                    lat:-16.0138654,
+                    lng:-48.0614447
+                }
+            }
         }
+        this.goToMarker = this.goToMarker.bind(this)
     }
-
+    goToMarker(position){
+        console.log(position)
+        this.setState({certer:{position}})
+    }
     addMarker(e, map){
 
         database.ref('positions').push({position:{lat:e.latLng.lat(), lng:e.latLng.lng()}}).then((a)=>{
@@ -95,7 +105,7 @@ class Mapa extends Component{
         let map = (
             <GoogleMap
             defaultZoom={16}
-            defaultCenter={this.props.markers[0].position}
+            center={this.state.certer.position}
             onClick={(e)=>this.addMarker(e, map)}
             >
             {this.props.markers.map((marker, index)=>(
@@ -107,7 +117,7 @@ class Mapa extends Component{
                 {
                 <div>
                     <img src={image}/>
-                    {marker.position.lat}, {marker.position.lng}
+                    <button onClick={()=>this.goToMarker(marker.position)}>{marker.position.lat}, {marker.position.lng}</button>
                 </div>
                 }
                 </Marker>
