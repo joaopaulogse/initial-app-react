@@ -28,10 +28,10 @@ class Principal extends Component{
                 const {lat, lng} = position.val().position;
                 markers.push({position:{lat:Number(lat), lng:Number(lng)}});
             });
-                this.setState({
-                    ...this.state, 
-                    markers:markers
-                })
+            this.setState({
+                ...this.state, 
+                markers:markers
+            })
         })
     }
     getAtualLocation(){
