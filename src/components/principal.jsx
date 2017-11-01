@@ -16,7 +16,8 @@ class Principal extends Component{
             markers:[{
                 position:{
                     lat:-16.0138654,
-                    lng:-48.0614447
+                    lng:-48.0614447,
+                    address:"Minha casa"
                 }
             }],
             mensagemErro:""
@@ -25,8 +26,8 @@ class Principal extends Component{
             // this.setState({...this.state, markers:[{}]})
             let markers = []
             data.forEach((position)=> {
-                const {lat, lng} = position.val().position;
-                markers.push({position:{lat:Number(lat), lng:Number(lng)}});
+                const {lat, lng, address} = position.val().position;
+                markers.push({position:{lat:Number(lat), lng:Number(lng), address}});
             });
             this.setState({
                 ...this.state, 
@@ -54,7 +55,7 @@ class Principal extends Component{
         return (
         <div className='container'>
 
-            <button onClick={()=>this.getAtualLocation()}>Minha localização</button> 
+            <button className="btn btn-default" onClick={()=>this.getAtualLocation()}>Minha localização</button> 
             <p style={{color:'red'}}>{this.state.mensagemErro.message}</p>
             <Map 
                 googleMapURL="https://maps.googleapis.com/maps/api/js?key=AIzaSyCLZ_Y-mXEK51keuawkneoXzmilUabHjQc"
@@ -71,10 +72,10 @@ class Principal extends Component{
 }
 
 
-const image = require('../../static/images/map-marker-radius.png')
+const image = require('../../static/images/map-marker-outline.svg')
 
 class Mapa extends Component{
-
+    geoCode
     constructor(props){
         super(props)
         this.addMarker = this.addMarker.bind(this);
@@ -88,17 +89,15 @@ class Mapa extends Component{
             }
         }
         this.goToMarker = this.goToMarker.bind(this)
+        this.geoCode = new google.maps.Geocoder()
     }
     goToMarker(position){
-        console.log(position)
         this.setState({certer:{position}})
     }
     addMarker(e, map){
-
-        database.ref('positions').push({position:{lat:e.latLng.lat(), lng:e.latLng.lng()}}).then((a)=>{
+        this.geoCode.geocode({'location':{lat:e.latLng.lat(), lng:e.latLng.lng()}}, (result, status)=>{
+            database.ref('positions').push({position:{lat:e.latLng.lat(), lng:e.latLng.lng(), address:result[0].formatted_address}})
         })
-        console.log(e)
-        console.log(e.latLng.lat(), e.latLng.lng())
     }
 
     render(){
@@ -106,22 +105,23 @@ class Mapa extends Component{
             <GoogleMap
             defaultZoom={16}
             center={this.state.certer.position}
-            onClick={(e)=>this.addMarker(e, map)}
+            onDblClick={(e)=>this.addMarker(e, map)}
+            options={{disableDoubleClickZoom: true}}
             >
             {this.props.markers.map((marker, index)=>(
                 <Marker key={index} 
                 position={marker.position} 
                 defaultTitle="minha casa"
                 icon={{url:image}}
+                animation={google.maps.Animation.Ro}
                 >
                 {
                 <div>
                     <img src={image}/>
-                    <button onClick={()=>this.goToMarker(marker.position)}>{marker.position.lat}, {marker.position.lng}</button>
+                    <button className="btn btn-default" onClick={()=>this.goToMarker(marker.position)}>{marker.position.address}</button>
                 </div>
                 }
                 </Marker>
-                
             ))
             }
             </GoogleMap>
